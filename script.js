@@ -1,7 +1,4 @@
 (() => {
-  // ===== CONFIG =====
-  const LEAD_ENDPOINT = 'https://lead-relay.leestygpt.workers.dev/lead/QF5JXKGEHL';
-
   // ===== UTILS =====
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -23,60 +20,6 @@
     burger.classList.remove('is-open');
     nav.classList.remove('is-open');
   }));
-
-  // Phone mask
-  document.querySelectorAll('input[type="tel"]').forEach(input => {
-    input.addEventListener('input', e => {
-      let v = e.target.value.replace(/\D/g, '');
-      if (v.startsWith('8')) v = '7' + v.slice(1);
-      if (!v.startsWith('7')) v = '7' + v;
-      v = v.slice(0, 11);
-      let out = '+7';
-      if (v.length > 1) out += ' (' + v.slice(1, 4);
-      if (v.length >= 4) out += ') ' + v.slice(4, 7);
-      if (v.length >= 7) out += '-' + v.slice(7, 9);
-      if (v.length >= 9) out += '-' + v.slice(9, 11);
-      e.target.value = out;
-    });
-  });
-
-  // ===== FORM SUBMIT → CLOUDFLARE WORKER → TELEGRAM =====
-  const form = document.getElementById('leadForm');
-  form?.addEventListener('submit', async e => {
-    e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    const orig = btn.textContent;
-
-    const fd = new FormData(form);
-    const payload = {};
-    fd.forEach((v, k) => { payload[k] = v; });
-
-    if (payload._gotcha) return;
-
-    if (!payload.name || (!payload.phone && !payload.contact)) {
-      alert('Заполните имя и контактные данные');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Отправляем...';
-
-    try {
-      const resp = await fetch(LEAD_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      btn.textContent = 'Заявка отправлена ✓';
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      btn.textContent = 'Ошибка, попробуйте ещё раз';
-    } finally {
-      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
-    }
-  });
 
   // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
